@@ -24,6 +24,24 @@ type Item struct {
 	Val string `json:"val"`
 }
 
+func CreateBloomFilter(itemNo int, fpProb float64) *BloomFilter {
+
+	bitArraySize := -(float64(itemNo) * math.Log(fpProb)) / math.Pow(math.Log(2), 2)
+	hashFuncNo := int((bitArraySize / float64(itemNo)) * math.Log(2))
+
+	bitArray := make([]bool, int(bitArraySize))
+
+	bf := &BloomFilter{
+		mu:         sync.Mutex{},
+		itemNo:     itemNo,
+		fpProb:     fpProb,
+		bitArray:   bitArray,
+		hashFuncNo: hashFuncNo,
+	}
+
+	return bf
+}
+
 func (bf *BloomFilter) Check(w http.ResponseWriter, r *http.Request) {
 	var x Item
 	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
@@ -78,24 +96,6 @@ func (bf *BloomFilter) Add(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 
-}
-
-func CreateBloomFilter(itemNo int, fpProb float64) *BloomFilter {
-
-	bitArraySize := -(float64(itemNo) * math.Log(fpProb)) / math.Pow(math.Log(2), 2)
-	hashFuncNo := int((bitArraySize / float64(itemNo)) * math.Log(2))
-
-	bitArray := make([]bool, int(bitArraySize))
-
-	bf := &BloomFilter{
-		mu:         sync.Mutex{},
-		itemNo:     itemNo,
-		fpProb:     fpProb,
-		bitArray:   bitArray,
-		hashFuncNo: hashFuncNo,
-	}
-
-	return bf
 }
 
 func main() {
